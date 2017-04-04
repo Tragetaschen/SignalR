@@ -73,13 +73,18 @@ namespace Microsoft.AspNetCore.SignalR.Client
             _connection.Closed += Shutdown;
         }
 
-        public Task StartAsync() => StartAsync(null, null);
-        public Task StartAsync(HttpClient httpClient) => StartAsync(null, httpClient);
-        public Task StartAsync(ITransport transport) => StartAsync(transport, null);
+        public Task StartAsync() => StartAsync(TransportType.All, httpClient: null);
+        public Task StartAsync(HttpClient httpClient) => StartAsync(TransportType.All, httpClient: httpClient);
+        public Task StartAsync(TransportType transportType) => StartAsync(transportType, httpClient: null);
 
-        public async Task StartAsync(ITransport transport, HttpClient httpClient)
+        public async Task StartAsync(TransportType transportType, HttpClient httpClient)
         {
-            await _connection.StartAsync(transport, httpClient);
+            await _connection.StartAsync(new DefaultTransportFactory(transportType), httpClient);
+        }
+
+        public async Task StartAsync(ITransportFactory transportFactory, HttpClient httpClient)
+        {
+            await _connection.StartAsync(transportFactory, httpClient);
         }
 
         public async Task DisposeAsync()

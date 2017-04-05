@@ -19,6 +19,7 @@ namespace Microsoft.AspNetCore.SignalR.Client
 {
     public class HubConnection
     {
+        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
         private readonly IConnection _connection;
         private readonly IInvocationAdapter _adapter;
@@ -68,7 +69,8 @@ namespace Microsoft.AspNetCore.SignalR.Client
             _connection = connection;
             _binder = new HubBinder(this);
             _adapter = adapter;
-            _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<HubConnection>();
+            _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
+            _logger = _loggerFactory.CreateLogger<HubConnection>();
             _connection.Received += OnDataReceived;
             _connection.Closed += Shutdown;
         }
@@ -79,7 +81,7 @@ namespace Microsoft.AspNetCore.SignalR.Client
 
         public async Task StartAsync(TransportType transportType, HttpClient httpClient)
         {
-            await _connection.StartAsync(new DefaultTransportFactory(transportType), httpClient);
+            await _connection.StartAsync(new DefaultTransportFactory(transportType, _loggerFactory), httpClient);
         }
 
         public async Task StartAsync(ITransportFactory transportFactory, HttpClient httpClient)

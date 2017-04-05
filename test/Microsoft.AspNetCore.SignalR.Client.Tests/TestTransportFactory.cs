@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Sockets.Client.Tests
             _transport = transport;
         }
 
-        public ITransport CreateTransport(TransportType availableServerTransports, ILoggerFactory loggerFactory, HttpClient httpClient)
+        public ITransport CreateTransport(TransportType availableServerTransports, HttpClient httpClient)
         {
             return _transport;
         }

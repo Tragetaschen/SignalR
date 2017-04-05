@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
         public Task StartAsync(TransportType transportType) => StartAsync(transportType, httpClient: null);
         public Task StartAsync(TransportType transportType, HttpClient httpClient)
         {
-            return StartAsync(new DefaultTransportFactory(transportType), httpClient);
+            return StartAsync(new DefaultTransportFactory(transportType, _loggerFactory), httpClient);
         }
 
         public Task StartAsync(ITransportFactory transportFactory, HttpClient httpClient)
@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
                 _httpClient = httpClient = new HttpClient();
             }
 
-            StartAsyncInternal(transportFactory ?? new DefaultTransportFactory(TransportType.All), httpClient)
+            StartAsyncInternal(transportFactory ?? new DefaultTransportFactory(TransportType.All, _loggerFactory), httpClient)
                 .ContinueWith(t =>
                 {
                     if (t.IsFaulted)
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
                 }
 
                 // TODO: Available server transports should be sent by the server in the negotiation response
-                _transport = transportFactory.CreateTransport(TransportType.All, _loggerFactory, httpClient);
+                _transport = transportFactory.CreateTransport(TransportType.All, httpClient);
 
                 _logger.LogDebug("Starting transport '{0}' with Url: {1}", _transport.GetType().Name, connectUrl);
                 await StartTransport(connectUrl);

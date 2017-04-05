@@ -10,8 +10,10 @@ namespace Microsoft.AspNetCore.Sockets.Client
     public class DefaultTransportFactory : ITransportFactory
     {
         private readonly TransportType _requestedTransportType;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public DefaultTransportFactory(TransportType requestedTransportType)
+
+        public DefaultTransportFactory(TransportType requestedTransportType, ILoggerFactory loggerFactory)
         {
             if (requestedTransportType <= 0 || requestedTransportType > TransportType.All)
             {
@@ -19,13 +21,14 @@ namespace Microsoft.AspNetCore.Sockets.Client
             }
 
             _requestedTransportType = requestedTransportType;
+            _loggerFactory = loggerFactory;
         }
 
-        public ITransport CreateTransport(TransportType availableServerTransports, ILoggerFactory loggerFactory, HttpClient httpClient)
+        public ITransport CreateTransport(TransportType availableServerTransports, HttpClient httpClient)
         {
             if ((availableServerTransports & TransportType.WebSockets & _requestedTransportType) == TransportType.WebSockets)
             {
-                return new WebSocketsTransport(loggerFactory);
+                return new WebSocketsTransport(_loggerFactory);
             }
 
             if ((availableServerTransports & TransportType.ServerSentEvents & _requestedTransportType) == TransportType.ServerSentEvents)
@@ -35,7 +38,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
 
             if ((availableServerTransports & TransportType.LongPolling & _requestedTransportType) == TransportType.LongPolling)
             {
-                return new LongPollingTransport(httpClient, loggerFactory);
+                return new LongPollingTransport(httpClient, _loggerFactory);
             }
 
             throw new InvalidOperationException("No requested transports available on the server.");

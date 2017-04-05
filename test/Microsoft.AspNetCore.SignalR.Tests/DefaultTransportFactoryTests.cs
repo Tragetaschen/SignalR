@@ -5,6 +5,7 @@ using System;
 using System.Net.Http;
 using Microsoft.AspNetCore.Sockets;
 using Microsoft.AspNetCore.Sockets.Client;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace Microsoft.AspNetCore.SignalR.Tests
@@ -17,7 +18,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
         public void DefaultTransportFactoryCannotBeCreatedWithInvalidTransportType(TransportType transportType)
         {
             Assert.Throws<ArgumentOutOfRangeException>(
-                () => new DefaultTransportFactory(transportType));
+                () => new DefaultTransportFactory(transportType, new LoggerFactory()));
         }
 
         [Theory]
@@ -25,9 +26,9 @@ namespace Microsoft.AspNetCore.SignalR.Tests
         [InlineData(TransportType.LongPolling, typeof(LongPollingTransport))]
         public void DefaultTransportFactoryCreatesRequestedTransportIfAvailable(TransportType requestedTransport, Type expectedTransportType)
         {
-            var transportFactory = new DefaultTransportFactory(requestedTransport);
+            var transportFactory = new DefaultTransportFactory(requestedTransport, loggerFactory: null);
             Assert.IsType(expectedTransportType,
-                transportFactory.CreateTransport(TransportType.All, loggerFactory: null, httpClient: null));
+                transportFactory.CreateTransport(TransportType.All, httpClient: null));
         }
 
         [Theory]
@@ -37,9 +38,9 @@ namespace Microsoft.AspNetCore.SignalR.Tests
         [InlineData(TransportType.All)]
         public void DefaultTransportFactoryThrowsIfItCannotCreateRequestedTransport(TransportType requestedTransport)
         {
-            var transportFactory = new DefaultTransportFactory(requestedTransport);
+            var transportFactory = new DefaultTransportFactory(requestedTransport, loggerFactory: null);
             var ex = Assert.Throws<InvalidOperationException>(
-                () => transportFactory.CreateTransport(~requestedTransport, loggerFactory: null, httpClient: null));
+                () => transportFactory.CreateTransport(~requestedTransport, httpClient: null));
 
             Assert.Equal("No requested transports available on the server.", ex.Message);
         }
@@ -48,8 +49,8 @@ namespace Microsoft.AspNetCore.SignalR.Tests
         public void DefaultTransportFactoryCreatesWebSocketsTransportIfAvailable()
         {
             Assert.IsType<WebSocketsTransport>(
-                new DefaultTransportFactory(TransportType.All)
-                    .CreateTransport(TransportType.All, loggerFactory: null, httpClient: null));
+                new DefaultTransportFactory(TransportType.All, loggerFactory: null)
+                    .CreateTransport(TransportType.All, httpClient: null));
         }
     }
 }
